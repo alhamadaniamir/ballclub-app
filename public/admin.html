@@ -78,17 +78,27 @@
       loadPlayers(); loadGames();
     }
 
+    const loginError = document.createElement('div'); loginError.className='text-danger small mb-2'; loginError.id='loginError'; loginError.style.display='none'; document.getElementById('loginForm').prepend(loginError);
+
     document.getElementById('loginForm').addEventListener('submit', async e=>{
       e.preventDefault();
+      loginError.style.display='none';
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const res = await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username,password}), credentials: 'include'});
       if (res.ok) { showDashboard(); }
       else {
         const t = await res.json().catch(()=>({}));
-        alert('login failed: '+(t.error||'unknown'));
+        loginError.textContent = 'Login failed: ' + (t.error || 'unknown');
+        loginError.style.display = 'block';
       }
     });
+
+    // on load, check session
+    (async function checkSession(){
+      const who = await fetch('/api/whoami', { credentials: 'include' }).then(r=>r.json()).catch(()=>({ user:null }));
+      if (who && who.user) showDashboard();
+    })();
 
     document.getElementById('logoutBtn').addEventListener('click', async ()=>{
       await fetch('/api/logout',{method:'POST', credentials: 'include'});

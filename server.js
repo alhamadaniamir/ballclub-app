@@ -122,6 +122,19 @@ app.post('/api/games', requireAuth, (req, res) => {
   });
 });
 
+// Who am I (session check)
+app.get('/api/whoami', (req, res) => {
+  if (req.session && req.session.userId) {
+    db.get('SELECT id, username, role FROM users WHERE id = ?', [req.session.userId], (err, user) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!user) return res.status(404).json({ error: 'user not found' });
+      res.json({ user });
+    });
+  } else {
+    res.status(200).json({ user: null });
+  }
+});
+
 // List games (history)
 app.get('/api/games', requireAuth, (req, res) => {
   db.all('SELECT * FROM games ORDER BY date DESC, id DESC', (err, rows) => {
