@@ -130,5 +130,23 @@ app.get('/api/games', requireAuth, (req, res) => {
   });
 });
 
+// Get game detail and its players (snapshot)
+app.get('/api/games/:id', requireAuth, (req, res) => {
+  const gameId = req.params.id;
+  db.get('SELECT * FROM games WHERE id = ?', [gameId], (err, game) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!game) return res.status(404).json({ error: 'game not found' });
+    const sql = `SELECT gp.position, gp.paid_override, p.id as player_id, p.number, p.name, p.paid as live_paid
+                 FROM game_players gp
+                 LEFT JOIN players p ON p.id = gp.player_id
+                 WHERE gp.game_id = ?
+                 ORDER BY gp.position ASC`;
+    db.all(sql, [gameId], (e, rows) => {
+      if (e) return res.status(500).json({ error: e.message });
+      res.json({ game, players: rows });
+    });
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on http://localhost:${PORT}`));

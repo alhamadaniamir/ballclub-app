@@ -125,10 +125,18 @@
       if (res.ok) { alert('Game created'); loadGames(); } else { const t = await res.json().catch(()=>({})); alert('Failed: '+(t.error||'unknown')); }
     });
 
-    async function viewGame(id){
-      const res = await fetch(`/api/games`, { credentials: 'include' });
-      if (!res.ok) return; const games = await res.json(); const g = games.find(x=>String(x.id)===String(id)); if (!g) return alert('not found');
-      alert(`Game: ${g.title}\nDate: ${g.date}`);
+    async async function viewGame(id){
+      const res = await fetch(`/api/games/${id}`, { credentials: 'include' });
+      if (!res.ok) return alert('Failed to load game');
+      const data = await res.json();
+      const g = data.game;
+      const players = data.players || [];
+      let out = `Game: ${g.title}\nDate: ${g.date}\nPlayers (${players.length}):\n\n`;
+      players.forEach(p => {
+        const paid = (p.paid_override === 1) ? 'Paid' : (p.live_paid ? 'Paid' : 'Unpaid');
+        out += `${p.position}. ${p.name || ('#'+(p.number||p.player_id))} — ${paid}\n`;
+      });
+      alert(out);
     }
   </script>
 </body>
