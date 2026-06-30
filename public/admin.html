@@ -86,12 +86,29 @@
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const res = await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username,password}), credentials: 'include'});
-      if (res.ok) { showDashboard(); }
-      else {
-        const t = await res.json().catch(()=>({}));
-        loginError.textContent = 'Login failed: ' + (t.error || 'unknown');
-        loginError.style.display = 'block';
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        if (res.ok) {
+          // verify session persisted by calling whoami
+          const who = await fetch('/api/whoami', { credentials: 'include' }).then(r=>r.json()).catch(()=>({ user:null }));
+          if (who && who.user) { showDashboard(); return; }
+          loginError.textContent = 'Login succeeded but session not persisted (cookies blocked). Try clearing cookies or use same-origin access.';
+          loginError.style.display = 'block';
+          return;
+        }
+        loginError.textContent = 'Login failed: ' + (json.error || 'unknown');
+      } catch(err){
+        if (res.ok) {
+          const who = await fetch('/api/whoami', { credentials: 'include' }).then(r=>r.json()).catch(()=>({ user:null }));
+          if (who && who.user) { showDashboard(); return; }
+          loginError.textContent = 'Login succeeded but session not persisted (cookies blocked). Try clearing cookies or use same-origin access.';
+          loginError.style.display = 'block';
+          return;
+        }
+        loginError.textContent = 'Login failed: ' + text;
       }
+      loginError.style.display = 'block';
     });
 
     // on load, check session
@@ -135,7 +152,7 @@
       if (res.ok) { alert('Game created'); loadGames(); } else { const t = await res.json().catch(()=>({})); alert('Failed: '+(t.error||'unknown')); }
     });
 
-    async async function viewGame(id){
+    async function viewGame(id){
       const res = await fetch(`/api/games/${id}`, { credentials: 'include' });
       if (!res.ok) return alert('Failed to load game');
       const data = await res.json();
