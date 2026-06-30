@@ -1,165 +1,201 @@
 const express = require('express');
-const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
+const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
-const bcrypt = require('bcrypt');
-
-const DB_PATH = path.join(__dirname, 'data', 'ballclub.db');
-const db = new sqlite3.Database(DB_PATH);
-
-// ensure players table exists
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS players (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    number INTEGER UNIQUE,
-    name TEXT,
-    paid INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT (datetime('now'))
-  )`);
-});
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const app = express();
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors());
 app.use(express.json());
-app.use(session({
-  store: new SQLiteStore({ db: 'sessions.sqlite', dir: './data' }),
-  secret: process.env.SESSION_SECRET || 'change_this_secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000, sameSite: 'lax' }
-}));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-// simple auth helpers
-function requireAuth(req, res, next) {
-  if (req.session && req.session.userId) return next();
-  return res.status(401).json({ error: 'unauthorized' });
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// ---------- Schemas ----------
+const memberSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  phone: { type: String, default: '' },
+  dateJoined: { type: Date, default: Date.now }
+});
+const Member = mongoose.model('Member', memberSchema);
+
+const pendingSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  phone: { type: String, default: '' },
+  requestedAt: { type: Date, default: Date.now }
+});
+
+const playerSchema = new mongoose.Schema({
+  queueNumber: { type: Number, required: true },
+  name: { type: String, required: true },
+  phone: { type: String, default: '' },
+  paid: { type: Boolean, default: false },
+  addedAt: { type: Date, default: Date.now }
+});
+
+const sessionSchema = new mongoose.Schema({
+  date: { type: Date, default: Date.now },
+  status: { type: String, enum: ['open', 'closed'], default: 'open' },
+  shareCode: { type: String, required: true, unique: true },
+  queue: [playerSchema],
+  pending: [pendingSchema]
+});
+const Session = mongoose.model('Session', sessionSchema);
+
+// ---------- Helpers ----------
+function generateShareCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-// List players (first-come, first-serve)
-app.get('/api/players', (req, res) => {
-  db.all('SELECT * FROM players ORDER BY created_at ASC, id ASC', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
-});
-
-// Add player (always append to the end of the queue; ignore client-supplied number)
-app.post('/api/players', (req, res) => {
-  const { name, paid } = req.body || {};
-
-  // find current max number and assign next
-  db.get('SELECT MAX(number) as maxn FROM players', (err, row) => {
-    if (err) return res.status(500).json({ error: err.message });
-    const next = (row && row.maxn) ? (row.maxn + 1) : 1;
-    const stmt = db.prepare('INSERT INTO players (number, name, paid) VALUES (?, ?, ?)');
-    stmt.run(next, name || `Player ${next}`, paid ? 1 : 0, function (e) {
-      if (e) return res.status(400).json({ error: e.message });
-      db.get('SELECT * FROM players WHERE id = ?', [this.lastID], (ex, row2) => {
-        if (ex) return res.status(500).json({ error: ex.message });
-        res.status(201).json(row2);
-      });
-    });
-  });
-});
-
-// Toggle/mark paid
-app.put('/api/players/:id/pay', (req, res) => {
-  const id = req.params.id;
-  const { paid } = req.body; // optional, if omitted toggle
-  db.get('SELECT paid FROM players WHERE id = ?', [id], (err, row) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!row) return res.status(404).json({ error: 'Player not found' });
-    const newPaid = typeof paid === 'number' ? (paid ? 1 : 0) : (row.paid ? 0 : 1);
-    db.run('UPDATE players SET paid = ? WHERE id = ?', [newPaid, id], function (e) {
-      if (e) return res.status(500).json({ error: e.message });
-      db.get('SELECT * FROM players WHERE id = ?', [id], (ex, updated) => {
-        if (ex) return res.status(500).json({ error: ex.message });
-        res.json(updated);
-      });
-    });
-  });
-});
-
-// Auth routes
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body || {};
-  if (!username || !password) return res.status(400).json({ error: 'username and password required' });
-  db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!user) return res.status(401).json({ error: 'invalid' });
-    bcrypt.compare(password, user.password_hash, (e, ok) => {
-      if (e) return res.status(500).json({ error: e.message });
-      if (!ok) return res.status(401).json({ error: 'invalid' });
-      req.session.userId = user.id;
-      req.session.username = user.username;
-      res.json({ ok: true });
-    });
-  });
-});
-
-app.post('/api/logout', (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
-});
-
-// Protected: create game snapshot from current queue
-app.post('/api/games', requireAuth, (req, res) => {
-  const { title, date, notes } = req.body || {};
-  db.run('INSERT INTO games (title, date, notes) VALUES (?, ?, ?)', [title || 'Game', date || new Date().toISOString(), notes || ''], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    const gameId = this.lastID;
-    // snapshot current queue
-    db.all('SELECT id as player_id, number, name FROM players ORDER BY created_at ASC, id ASC', (err2, rows) => {
-      if (err2) return res.status(500).json({ error: err2.message });
-      const insert = db.prepare('INSERT INTO game_players (game_id, player_id, position, paid_override) VALUES (?, ?, ?, ?)');
-      rows.forEach((r, idx) => insert.run(gameId, r.player_id || null, idx + 1, 0));
-      insert.finalize(() => {
-        res.status(201).json({ gameId, players: rows.length });
-      });
-    });
-  });
-});
-
-// Who am I (session check)
-app.get('/api/whoami', (req, res) => {
-  if (req.session && req.session.userId) {
-    db.get('SELECT id, username, role FROM users WHERE id = ?', [req.session.userId], (err, user) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (!user) return res.status(404).json({ error: 'user not found' });
-      res.json({ user });
-    });
-  } else {
-    res.status(200).json({ user: null });
+function requireAuth(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token provided' });
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
   }
+}
+
+// ---------- Auth ----------
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username !== process.env.OWNER_USERNAME || password !== process.env.OWNER_PASSWORD) {
+    return res.status(401).json({ error: 'Incorrect username or password' });
+  }
+  const token = jwt.sign({ role: 'owner' }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  res.json({ token });
 });
 
-// List games (history)
-app.get('/api/games', requireAuth, (req, res) => {
-  db.all('SELECT * FROM games ORDER BY date DESC, id DESC', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+// ---------- Sessions (owner only) ----------
+app.get('/api/sessions', requireAuth, async (req, res) => {
+  const sessions = await Session.find().sort({ date: -1 });
+  res.json(sessions);
 });
 
-// Get game detail and its players (snapshot)
-app.get('/api/games/:id', requireAuth, (req, res) => {
-  const gameId = req.params.id;
-  db.get('SELECT * FROM games WHERE id = ?', [gameId], (err, game) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!game) return res.status(404).json({ error: 'game not found' });
-    const sql = `SELECT gp.position, gp.paid_override, p.id as player_id, p.number, p.name, p.paid as live_paid
-                 FROM game_players gp
-                 LEFT JOIN players p ON p.id = gp.player_id
-                 WHERE gp.game_id = ?
-                 ORDER BY gp.position ASC`;
-    db.all(sql, [gameId], (e, rows) => {
-      if (e) return res.status(500).json({ error: e.message });
-      res.json({ game, players: rows });
-    });
-  });
+app.post('/api/sessions', requireAuth, async (req, res) => {
+  let open = await Session.findOne({ status: 'open' });
+  if (open) return res.json(open);
+  const session = new Session({ shareCode: generateShareCode(), queue: [], pending: [] });
+  await session.save();
+  res.status(201).json(session);
+});
+
+app.get('/api/sessions/:id', requireAuth, async (req, res) => {
+  const session = await Session.findById(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  res.json(session);
+});
+
+app.post('/api/sessions/:id/walkin', requireAuth, async (req, res) => {
+  const session = await Session.findById(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  if (session.status === 'closed') return res.status(400).json({ error: 'Session is closed' });
+
+  const nextNumber = session.queue.length > 0
+    ? Math.max(...session.queue.map(p => p.queueNumber)) + 1
+    : 1;
+  session.queue.push({ queueNumber: nextNumber, name: req.body.name, paid: false });
+  await session.save();
+  res.status(201).json(session);
+});
+
+app.patch('/api/sessions/:id/players/:playerId', requireAuth, async (req, res) => {
+  const session = await Session.findById(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  const player = session.queue.id(req.params.playerId);
+  if (!player) return res.status(404).json({ error: 'Player not found' });
+  player.paid = !player.paid;
+  await session.save();
+  res.json(session);
+});
+
+app.patch('/api/sessions/:id/close', requireAuth, async (req, res) => {
+  const session = await Session.findById(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  session.status = 'closed';
+  await session.save();
+  res.json(session);
+});
+
+// Approve / decline pending join requests
+app.post('/api/sessions/:id/pending/:requestId/approve', requireAuth, async (req, res) => {
+  const session = await Session.findById(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  const request = session.pending.id(req.params.requestId);
+  if (!request) return res.status(404).json({ error: 'Request not found' });
+
+  const nextNumber = session.queue.length > 0
+    ? Math.max(...session.queue.map(p => p.queueNumber)) + 1
+    : 1;
+  session.queue.push({ queueNumber: nextNumber, name: request.name, phone: request.phone, paid: false });
+
+  const phone = request.phone;
+  const name = request.name;
+  request.deleteOne();
+  await session.save();
+
+  if (phone) {
+    const existingMember = await Member.findOne({ phone });
+    if (!existingMember) {
+      await new Member({ name, phone }).save();
+    }
+  }
+
+  res.json(session);
+});
+
+app.post('/api/sessions/:id/pending/:requestId/decline', requireAuth, async (req, res) => {
+  const session = await Session.findById(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  const request = session.pending.id(req.params.requestId);
+  if (!request) return res.status(404).json({ error: 'Request not found' });
+  request.deleteOne();
+  await session.save();
+  res.json(session);
+});
+
+// ---------- Members (owner only) ----------
+app.get('/api/members', requireAuth, async (req, res) => {
+  const members = await Member.find().sort({ name: 1 });
+  res.json(members);
+});
+
+app.post('/api/members', requireAuth, async (req, res) => {
+  const member = new Member({ name: req.body.name, phone: req.body.phone || '' });
+  await member.save();
+  res.status(201).json(member);
+});
+
+// ---------- Public join flow (no auth) ----------
+app.get('/api/public/session/:shareCode', async (req, res) => {
+  const session = await Session.findOne({ shareCode: req.params.shareCode });
+  if (!session) return res.status(404).json({ error: 'Link not found or expired' });
+  res.json({ date: session.date, status: session.status });
+});
+
+app.get('/api/public/lookup', async (req, res) => {
+  const phone = req.query.phone;
+  if (!phone) return res.json({ found: false });
+  const member = await Member.findOne({ phone });
+  res.json(member ? { found: true, name: member.name } : { found: false });
+});
+
+app.post('/api/public/session/:shareCode/join', async (req, res) => {
+  const session = await Session.findOne({ shareCode: req.params.shareCode });
+  if (!session) return res.status(404).json({ error: 'Link not found or expired' });
+  if (session.status === 'closed') return res.status(400).json({ error: 'This session is closed' });
+
+  const { name, phone } = req.body;
+  if (!name || !phone) return res.status(400).json({ error: 'Name and phone are required' });
+
+  session.pending.push({ name, phone });
+  await session.save();
+  res.status(201).json({ message: 'Request sent. Wait for the owner to approve you.' });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server listening on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
