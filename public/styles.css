@@ -60,7 +60,7 @@
   .add-row { display: flex; gap: 8px; margin-bottom: 14px; }
   .add-row input { margin-bottom: 0; flex: 1; }
   .add-row button { background: var(--primary); color: white; border: none; padding: 0 18px; border-radius: 10px; font-weight: 600; cursor: pointer; }
-  .pending-row, .player-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 11px 13px; margin-bottom: 7px; }
+  .pending-row, .player-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 11px 13px; margin-bottom: 7px; justify-content: space-between; }
   .queue-num { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: var(--primary); flex-shrink: 0; }
   .row-name { flex: 1; font-weight: 500; font-size: 14px; }
   .row-sub { font-size: 11px; color: var(--muted); }

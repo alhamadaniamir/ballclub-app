@@ -116,9 +116,9 @@ function renderSession(sessionData) {
   const pendingWrap = document.getElementById('pending-wrap');
   pendingWrap.style.display = sessionData.pending.length ? 'block' : 'none';
   document.getElementById('pending-list').innerHTML = sessionData.pending.map(function(p) {
-    return '<div class="pending-row"><div class="row-name">' + p.name + '<div class="row-sub">' + p.phone + '</div></div>' +
-      '<button class="approve-btn" onclick="approveRequest(\'' + p._id + '\')">Approve</button>' +
-      '<button class="decline-btn" onclick="declineRequest(\'' + p._id + '\')">Decline</button></div>';
+    return '<div class="pending-row"><div style="display: flex; align-items: center; gap: 10px; flex: 1;"><div class="row-name">' + p.name + '<div class="row-sub">' + p.phone + '</div></div></div>' +
+      '<div style="display: flex; gap: 8px;"><button class="approve-btn" onclick="approveRequest(\'' + p._id + '\')">Approve</button>' +
+      '<button class="decline-btn" onclick="declineRequest(\'' + p._id + '\')">Decline</button></div></div>';
   }).join('');
 
   const playersList = document.getElementById('players-list');
@@ -126,10 +126,10 @@ function renderSession(sessionData) {
     playersList.innerHTML = '<div class="empty-state">No approved players yet.</div>';
   } else {
     playersList.innerHTML = sessionData.queue.map(function(p) {
-      return '<div class="player-row"><div class="queue-num">' + p.queueNumber + '</div>' +
-        '<div class="row-name">' + p.name + '</div>' +
-        '<button class="pay-toggle ' + (p.paid ? 'paid' : 'unpaid') + '" onclick="togglePaid(\'' + p._id + '\')">' + (p.paid ? 'Paid' : 'Unpaid') + '</button>' +
-        '<button class="action-btn" onclick="deletePlayer(\'' + p._id + '\')">Delete</button></div>';
+      return '<div class="player-row"><div style="display: flex; align-items: center; gap: 10px; flex: 1;"><div class="queue-num">' + p.queueNumber + '</div>' +
+        '<div class="row-name">' + p.name + '</div></div>' +
+        '<div style="display: flex; gap: 8px;"><button class="pay-toggle ' + (p.paid ? 'paid' : 'unpaid') + '" onclick="togglePaid(\'' + p._id + '\')">' + (p.paid ? 'Paid' : 'Unpaid') + '</button>' +
+        '<button class="action-btn" onclick="deletePlayer(\'' + p._id + '\')">Delete</button></div></div>';
     }).join('');
   }
 }
@@ -225,8 +225,8 @@ async function loadMembers() {
   }
   list.innerHTML = members.map(function(m) {
     const initials = m.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
-    return '<div class="player-row"><div class="queue-num">' + initials + '</div>' +
-      '<div><div class="row-name">' + m.name + '</div><div class="row-sub">' + (m.phone || 'No phone') + '</div></div>' +
+    return '<div class="player-row"><div style="display: flex; align-items: center; gap: 10px; flex: 1;"><div class="queue-num">' + initials + '</div>' +
+      '<div><div class="row-name">' + m.name + '</div><div class="row-sub">' + (m.phone || 'No phone') + '</div></div></div>' +
       '<button class="action-btn" onclick="deleteMember(\'' + m._id + '\')">Delete</button></div>';
   }).join('');
 }
