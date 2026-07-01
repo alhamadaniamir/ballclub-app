@@ -22,7 +22,8 @@
   .app { max-width: 480px; margin: 0 auto; min-height: 100vh; }
   .screen { display: none; }
   .screen.active { display: block; }
-  #login-screen { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding: 28px 22px; }
+  #login-screen { display: none; flex-direction: column; justify-content: center; min-height: 100vh; padding: 28px 22px; }
+  #login-screen.active { display: flex; }
   .badge { width: 60px; height: 60px; border-radius: 16px; background: linear-gradient(180deg, var(--surface-alt), var(--surface)); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px; }
   .login-title { text-align: center; font-size: 19px; font-weight: 600; letter-spacing: 0.3px; }
   .login-sub { text-align: center; font-size: 13px; color: var(--muted); margin-top: 4px; margin-bottom: 26px; }
