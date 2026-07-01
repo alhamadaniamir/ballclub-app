@@ -4,77 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Mab Sports Ballclub</title>
-<style>
-  :root {
-    --bg: #15191D;
-    --surface: #1E242B;
-    --surface-alt: #262D35;
-    --text: #F2F4F6;
-    --muted: #8B95A1;
-    --primary: #C8202E;
-    --primary-dark: #9A1822;
-    --paid: #4CAF7D;
-    --unpaid: #C8202E;
-    --pending: #D98C2E;
-    --border: #2E363F;
-    --chrome: #C9D0D6;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; }
-  .screen { display: none; }
-  .screen.active { display: block; }
-  #login-screen { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding: 28px 22px; }
-  .badge { width: 60px; height: 60px; border-radius: 16px; background: linear-gradient(180deg, var(--surface-alt), var(--surface)); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px; }
-  .login-title { text-align: center; font-size: 19px; font-weight: 600; letter-spacing: 0.3px; }
-  .login-sub { text-align: center; font-size: 13px; color: var(--muted); margin-top: 4px; margin-bottom: 26px; }
-  input { width: 100%; padding: 13px 14px; border-radius: 10px; border: 0.5px solid var(--border); background: var(--surface-alt); color: var(--text); font-size: 15px; margin-bottom: 12px; }
-  button.primary { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--primary); color: white; font-size: 15px; font-weight: 600; cursor: pointer; }
-  button.primary:active { background: var(--primary-dark); }
-  .error-msg { color: var(--primary); font-size: 13px; margin-top: 10px; display: none; text-align: center; }
-  header { padding: 16px 18px; display: flex; align-items: center; gap: 10px; }
-  .header-badge { width: 28px; height: 28px; border-radius: 8px; background: var(--surface-alt); border: 1px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-  header h1 { font-size: 14px; font-weight: 600; letter-spacing: 0.3px; }
-  nav { display: flex; padding: 0 14px; border-bottom: 0.5px solid var(--border); gap: 4px; }
-  nav button { flex: 1; background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 500; padding: 0 0 12px; cursor: pointer; border-bottom: 2px solid transparent; }
-  nav button.active { color: var(--text); border-bottom-color: var(--primary); }
-  main { padding: 18px; }
-  .start-btn { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--primary); color: white; font-size: 15px; font-weight: 600; cursor: pointer; }
-  .session-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-  .session-card .date { font-weight: 500; font-size: 14px; }
-  .session-card .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .pill { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
-  .pill.open { background: rgba(200,32,46,0.18); color: var(--primary); }
-  .pill.closed { background: var(--surface-alt); color: var(--muted); }
-  .session-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .session-title { font-size: 14px; font-weight: 500; }
-  .close-btn { background: var(--surface-alt); border: 0.5px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 500; padding: 7px 12px; border-radius: 8px; cursor: pointer; }
-  .link-box { background: var(--surface-alt); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
-  .link-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.5px; }
-  .link-row { display: flex; align-items: center; gap: 8px; }
-  .link-text { flex: 1; font-size: 12px; color: var(--chrome); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .copy-btn { background: var(--primary); border: none; color: white; font-size: 11px; padding: 7px 11px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
-  .section-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.5px; }
-  .add-row { display: flex; gap: 8px; margin-bottom: 14px; }
-  .add-row input { margin-bottom: 0; flex: 1; }
-  .add-row button { background: var(--primary); color: white; border: none; padding: 0 18px; border-radius: 10px; font-weight: 600; cursor: pointer; }
-  .pending-row, .player-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 11px 13px; margin-bottom: 7px; }
-  .queue-num { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: var(--primary); flex-shrink: 0; }
-  .row-name { flex: 1; font-weight: 500; font-size: 14px; }
-  .row-sub { font-size: 11px; color: var(--muted); }
-  .pay-toggle { border: none; padding: 7px 13px; border-radius: 20px; font-weight: 600; font-size: 11px; cursor: pointer; color: white; min-width: 64px; }
-  .pay-toggle.paid { background: var(--paid); }
-  .pay-toggle.unpaid { background: var(--unpaid); }
-  .approve-btn { background: var(--primary); border: none; color: white; font-size: 11px; padding: 7px 11px; border-radius: 6px; cursor: pointer; }
-  .decline-btn { background: none; border: 0.5px solid var(--border); color: var(--muted); font-size: 11px; padding: 7px 11px; border-radius: 6px; cursor: pointer; }
-  .empty-state { text-align: center; color: var(--muted); padding: 36px 16px; font-size: 13px; }
-  .back-link { background: none; border: none; color: var(--primary); font-size: 13px; cursor: pointer; padding: 0; }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="app">
@@ -99,262 +29,42 @@
       <button id="nav-session" onclick="switchTab('session')">Session</button>
       <button id="nav-members" onclick="switchTab('members')">Members</button>
     </nav>
-
     <main>
-      <div id="tab-history">
+
+      <div id="history-tab">
+        <button class="start-btn" onclick="startSession()">Start New Session</button>
         <div id="sessions-list"></div>
       </div>
 
-      <div id="tab-session" style="display:none;">
-        <div id="session-empty">
-          <button class="start-btn" onclick="startSession()">+ Start Today's Session</button>
+      <div id="session-tab" style="display:none;">
+        <div class="session-top">
+          <span class="session-title" id="session-title"></span>
+          <button class="close-btn" onclick="switchTab('history')">← Back</button>
         </div>
-        <div id="session-active" style="display:none;">
-          <div class="session-top">
-            <div class="session-title" id="session-title"></div>
-            <button class="close-btn" id="close-btn" onclick="closeSession()">Close</button>
+        <div class="link-box">
+          <div class="link-label">SHARE LINK FOR JOINERS</div>
+          <div class="link-row">
+            <span class="link-text" id="share-link"></span>
+            <button class="copy-btn" onclick="copyLink()">Copy</button>
           </div>
-          <div class="link-box">
-            <div class="link-label">SHARE LINK</div>
-            <div class="link-row">
-              <div class="link-text" id="link-text"></div>
-              <button class="copy-btn" id="copy-btn" onclick="copyLink()">Copy</button>
-            </div>
-          </div>
-          <div id="pending-wrap" style="display:none; margin-bottom:14px;">
-            <div class="section-label">PENDING REQUESTS</div>
-            <div id="pending-list"></div>
-          </div>
-          <div class="section-label" style="display:flex; justify-content:space-between; align-items:center;">
-            <span>QUEUE</span>
-            <span style="cursor:pointer; color:var(--primary);" onclick="document.getElementById('walkin-row').style.display='flex'">+ Walk-in</span>
-          </div>
-          <div class="add-row" id="walkin-row" style="display:none;">
-            <input type="text" id="walkin-name" placeholder="Walk-in player name">
-            <button onclick="addWalkin()">Add</button>
-          </div>
-          <div id="players-list"></div>
         </div>
+        <div id="session-detail"></div>
       </div>
 
-      <div id="tab-members" style="display:none;">
+      <div id="members-tab" style="display:none;">
+        <div class="section-label">MEMBERS LIST</div>
         <div class="add-row">
-          <input type="text" id="mem-name" placeholder="Name">
-          <input type="text" id="mem-phone" placeholder="Phone">
+          <input type="text" id="member-name" placeholder="Name">
+          <input type="tel" id="member-phone" placeholder="Phone">
           <button onclick="addMember()">Add</button>
         </div>
         <div id="members-list"></div>
       </div>
+
     </main>
   </div>
 
 </div>
-
-<script>
-const API = '/api';
-let token = localStorage.getItem('token');
-let currentSessionId = null;
-
-function authHeaders() {
-  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
-}
-
-async function login() {
-  const username = document.getElementById('username-input').value;
-  const password = document.getElementById('password-input').value;
-  const res = await fetch(API + '/login', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-  if (!res.ok) {
-    document.getElementById('login-error').style.display = 'block';
-    return;
-  }
-  const data = await res.json();
-  token = data.token;
-  localStorage.setItem('token', token);
-  showApp();
-}
-
-function showApp() {
-  document.getElementById('login-screen').classList.remove('active');
-  document.getElementById('app-screen').classList.add('active');
-  switchTab('session');
-}
-
-function switchTab(name) {
-  ['history','session','members'].forEach(function(t) {
-    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
-    document.getElementById('nav-' + t).classList.toggle('active', t === name);
-  });
-  // Show empty state by default when switching to session tab to prevent flashing
-  if (name === 'session') {
-    document.getElementById('session-empty').style.display = 'block';
-    document.getElementById('session-active').style.display = 'none';
-  }
-  if (name === 'history') loadHistory();
-  if (name === 'session') loadSessionTab();
-  if (name === 'members') loadMembers();
-}
-
-async function loadHistory() {
-  const res = await fetch(API + '/sessions', { headers: authHeaders() });
-  if (res.status === 401) return logout();
-  const sessions = await res.json();
-  const list = document.getElementById('sessions-list');
-  if (sessions.length === 0) {
-    list.innerHTML = '<div class="empty-state">No sessions yet. Go to the Session tab to start one.</div>';
-    return;
-  }
-  list.innerHTML = sessions.map(function(s) {
-    const date = new Date(s.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    const paidCount = s.queue.filter(function(p){ return p.paid; }).length;
-    return '<div class="session-card" onclick="openSession(\'' + s._id + '\')">' +
-      '<div><div class="date">' + date + '</div><div class="meta">' + s.queue.length + ' players &middot; ' + paidCount + ' paid</div></div>' +
-      '<span class="pill ' + s.status + '">' + s.status + '</span></div>';
-  }).join('');
-}
-
-async function loadSessionTab() {
-  const res = await fetch(API + '/sessions', { headers: authHeaders() });
-  const sessions = await res.json();
-  const open = sessions.find(function(s){ return s.status === 'open'; });
-  if (open) {
-    currentSessionId = open._id;
-    document.getElementById('session-empty').style.display = 'none';
-    document.getElementById('session-active').style.display = 'block';
-    renderSession(open);
-  } else {
-    currentSessionId = null;
-    document.getElementById('session-empty').style.display = 'block';
-    document.getElementById('session-active').style.display = 'none';
-  }
-}
-
-async function startSession() {
-  const res = await fetch(API + '/sessions', { method: 'POST', headers: authHeaders() });
-  const sessionData = await res.json();
-  currentSessionId = sessionData._id;
-  document.getElementById('session-empty').style.display = 'none';
-  document.getElementById('session-active').style.display = 'block';
-  renderSession(sessionData);
-}
-
-async function openSession(id) {
-  currentSessionId = id;
-  switchTab('session');
-  const res = await fetch(API + '/sessions/' + id, { headers: authHeaders() });
-  const sessionData = await res.json();
-  document.getElementById('session-empty').style.display = 'none';
-  document.getElementById('session-active').style.display = 'block';
-  renderSession(sessionData);
-}
-
-async function refreshCurrentSession() {
-  const res = await fetch(API + '/sessions/' + currentSessionId, { headers: authHeaders() });
-  const sessionData = await res.json();
-  renderSession(sessionData);
-}
-
-function renderSession(sessionData) {
-  const date = new Date(sessionData.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  document.getElementById('session-title').textContent = date + ' \u00b7 ' + sessionData.status;
-  document.getElementById('close-btn').style.display = sessionData.status === 'closed' ? 'none' : 'inline-block';
-  document.getElementById('link-text').textContent = window.location.origin + '/join.html?code=' + sessionData.shareCode;
-
-  const pendingWrap = document.getElementById('pending-wrap');
-  pendingWrap.style.display = sessionData.pending.length ? 'block' : 'none';
-  document.getElementById('pending-list').innerHTML = sessionData.pending.map(function(p) {
-    return '<div class="pending-row"><div class="row-name">' + p.name + '<div class="row-sub">' + p.phone + '</div></div>' +
-      '<button class="approve-btn" onclick="approveRequest(\'' + p._id + '\')">Approve</button>' +
-      '<button class="decline-btn" onclick="declineRequest(\'' + p._id + '\')">Decline</button></div>';
-  }).join('');
-
-  const playersList = document.getElementById('players-list');
-  if (sessionData.queue.length === 0) {
-    playersList.innerHTML = '<div class="empty-state">No approved players yet.</div>';
-  } else {
-    playersList.innerHTML = sessionData.queue.map(function(p) {
-      return '<div class="player-row"><div class="queue-num">' + p.queueNumber + '</div>' +
-        '<div class="row-name">' + p.name + '</div>' +
-        '<button class="pay-toggle ' + (p.paid ? 'paid' : 'unpaid') + '" onclick="togglePaid(\'' + p._id + '\')">' + (p.paid ? 'Paid' : 'Unpaid') + '</button></div>';
-    }).join('');
-  }
-}
-
-function copyLink() {
-  const text = document.getElementById('link-text').textContent;
-  navigator.clipboard.writeText(text);
-  const btn = document.getElementById('copy-btn');
-  btn.textContent = 'Copied';
-  setTimeout(function(){ btn.textContent = 'Copy'; }, 1500);
-}
-
-async function approveRequest(requestId) {
-  await fetch(API + '/sessions/' + currentSessionId + '/pending/' + requestId + '/approve', { method: 'POST', headers: authHeaders() });
-  refreshCurrentSession();
-}
-
-async function declineRequest(requestId) {
-  await fetch(API + '/sessions/' + currentSessionId + '/pending/' + requestId + '/decline', { method: 'POST', headers: authHeaders() });
-  refreshCurrentSession();
-}
-
-async function addWalkin() {
-  const input = document.getElementById('walkin-name');
-  const name = input.value.trim();
-  if (!name) return;
-  await fetch(API + '/sessions/' + currentSessionId + '/walkin', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name }) });
-  input.value = '';
-  document.getElementById('walkin-row').style.display = 'none';
-  refreshCurrentSession();
-}
-
-async function togglePaid(playerId) {
-  await fetch(API + '/sessions/' + currentSessionId + '/players/' + playerId, { method: 'PATCH', headers: authHeaders() });
-  refreshCurrentSession();
-}
-
-async function closeSession() {
-  if (!confirm('Close this session? No more players can be added.')) return;
-  await fetch(API + '/sessions/' + currentSessionId + '/close', { method: 'PATCH', headers: authHeaders() });
-  refreshCurrentSession();
-}
-
-async function loadMembers() {
-  const res = await fetch(API + '/members', { headers: authHeaders() });
-  const members = await res.json();
-  const list = document.getElementById('members-list');
-  if (members.length === 0) {
-    list.innerHTML = '<div class="empty-state">No members yet.</div>';
-    return;
-  }
-  list.innerHTML = members.map(function(m) {
-    const initials = m.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
-    return '<div class="player-row"><div class="queue-num">' + initials + '</div>' +
-      '<div><div class="row-name">' + m.name + '</div><div class="row-sub">' + (m.phone || 'No phone') + '</div></div></div>';
-  }).join('');
-}
-
-async function addMember() {
-  const name = document.getElementById('mem-name').value.trim();
-  const phone = document.getElementById('mem-phone').value.trim();
-  if (!name) return;
-  await fetch(API + '/members', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name, phone: phone }) });
-  document.getElementById('mem-name').value = '';
-  document.getElementById('mem-phone').value = '';
-  loadMembers();
-}
-
-function logout() {
-  localStorage.removeItem('token');
-  token = null;
-  document.getElementById('app-screen').classList.remove('active');
-  document.getElementById('login-screen').classList.add('active');
-}
-
-// if (token) showApp();
-// Always show login page first, then redirect after successful login
-</script>
+<script src="script.js"></script>
 </body>
 </html>

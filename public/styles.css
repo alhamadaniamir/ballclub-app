@@ -1,0 +1,69 @@
+  :root {
+    --bg: #15191D;
+    --surface: #1E242B;
+    --surface-alt: #262D35;
+    --text: #F2F4F6;
+    --muted: #8B95A1;
+    --primary: #C8202E;
+    --primary-dark: #9A1822;
+    --paid: #4CAF7D;
+    --unpaid: #C8202E;
+    --pending: #D98C2E;
+    --border: #2E363F;
+    --chrome: #C9D0D6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  #login-screen { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding: 28px 22px; }
+  .badge { width: 60px; height: 60px; border-radius: 16px; background: linear-gradient(180deg, var(--surface-alt), var(--surface)); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px; }
+  .login-title { text-align: center; font-size: 19px; font-weight: 600; letter-spacing: 0.3px; }
+  .login-sub { text-align: center; font-size: 13px; color: var(--muted); margin-top: 4px; margin-bottom: 26px; }
+  input { width: 100%; padding: 13px 14px; border-radius: 10px; border: 0.5px solid var(--border); background: var(--surface-alt); color: var(--text); font-size: 15px; margin-bottom: 12px; }
+  button.primary { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--primary); color: white; font-size: 15px; font-weight: 600; cursor: pointer; }
+  button.primary:active { background: var(--primary-dark); }
+  .error-msg { color: var(--primary); font-size: 13px; margin-top: 10px; display: none; text-align: center; }
+  header { padding: 16px 18px; display: flex; align-items: center; gap: 10px; }
+  .header-badge { width: 28px; height: 28px; border-radius: 8px; background: var(--surface-alt); border: 1px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  header h1 { font-size: 14px; font-weight: 600; letter-spacing: 0.3px; }
+  nav { display: flex; padding: 0 14px; border-bottom: 0.5px solid var(--border); gap: 4px; }
+  nav button { flex: 1; background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 500; padding: 0 0 12px; cursor: pointer; border-bottom: 2px solid transparent; }
+  nav button.active { color: var(--text); border-bottom-color: var(--primary); }
+  main { padding: 18px; }
+  .start-btn { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--primary); color: white; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .session-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .session-card .date { font-weight: 500; font-size: 14px; }
+  .session-card .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .pill { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
+  .pill.open { background: rgba(200,32,46,0.18); color: var(--primary); }
+  .pill.closed { background: var(--surface-alt); color: var(--muted); }
+  .session-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .session-title { font-size: 14px; font-weight: 500; }
+  .close-btn { background: var(--surface-alt); border: 0.5px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 500; padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+  .link-box { background: var(--surface-alt); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+  .link-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.5px; }
+  .link-row { display: flex; align-items: center; gap: 8px; }
+  .link-text { flex: 1; font-size: 12px; color: var(--chrome); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .copy-btn { background: var(--primary); border: none; color: white; font-size: 11px; padding: 7px 11px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+  .section-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.5px; }
+  .add-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .add-row input { margin-bottom: 0; flex: 1; }
+  .add-row button { background: var(--primary); color: white; border: none; padding: 0 18px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+  .pending-row, .player-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 11px 13px; margin-bottom: 7px; }
+  .queue-num { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: var(--primary); flex-shrink: 0; }
+  .row-name { flex: 1; font-weight: 500; font-size: 14px; }
+  .row-sub { font-size: 11px; color: var(--muted); }
+  .pay-toggle { border: none; padding: 7px 13px; border-radius: 20px; font-weight: 600; font-size: 11px; cursor: pointer; color: white; min-width: 64px; }
+  .pay-toggle.paid { background: var(--paid); }
+  .pay-toggle.unpaid { background: var(--unpaid); }
+  .approve-btn { background: var(--primary); border: none; color: white; font-size: 11px; padding: 7px 11px; border-radius: 6px; cursor: pointer; }
+  .decline-btn { background: none; border: 0.5px solid var(--border); color: var(--muted); font-size: 11px; padding: 7px 11px; border-radius: 6px; cursor: pointer; }
+  .empty-state { text-align: center; color: var(--muted); padding: 36px 16px; font-size: 13px; }
+  .back-link { background: none; border: none; color: var(--primary); font-size: 13px; cursor: pointer; padding: 0; }
