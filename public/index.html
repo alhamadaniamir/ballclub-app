@@ -37,22 +37,36 @@
 
       <div id="session-tab" style="display:none;">
         <button class="start-btn" onclick="startSession()">Start New Session</button>
-        <div id="session-empty" style="display:block;">
+        
+        <div id="session-empty">
           <div class="empty-state">No active session. Click "Start New Session" to begin.</div>
         </div>
+
         <div id="session-active" style="display:none;">
           <div class="session-top">
             <span class="session-title" id="session-title"></span>
-            <button class="close-btn" onclick="switchTab('history')">← Back</button>
+            <button id="close-btn" class="close-btn" onclick="closeSession()">Close Session</button>
           </div>
+
           <div class="link-box">
             <div class="link-label">SHARE LINK FOR JOINERS</div>
             <div class="link-row">
-              <span class="link-text" id="share-link"></span>
-              <button class="copy-btn" onclick="copyLink()">Copy</button>
+              <span class="link-text" id="link-text"></span>
+              <button id="copy-btn" class="copy-btn" onclick="copyLink()">Copy</button>
             </div>
           </div>
-          <div id="session-detail"></div>
+
+          <div id="pending-wrap" style="display:none;">
+            <div class="section-label">PENDING REQUESTS</div>
+            <div id="pending-list"></div>
+          </div>
+
+          <div class="section-label">PLAYERS IN QUEUE</div>
+          <div class="add-row">
+            <input type="text" id="walkin-name" placeholder="Walk-in name">
+            <button onclick="addWalkin()">Add</button>
+          </div>
+          <div id="players-list"></div>
         </div>
       </div>
 
