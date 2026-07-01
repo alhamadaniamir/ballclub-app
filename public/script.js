@@ -225,8 +225,8 @@ async function loadMembers() {
   }
   list.innerHTML = members.map(function(m) {
     const initials = m.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
-    return '<div class="player-row"><div style="display: flex; align-items: center; gap: 10px; flex: 1;"><div class="queue-num">' + initials + '</div>' +
-      '<div><div class="row-name">' + m.name + '</div><div class="row-sub">' + (m.phone || 'No phone') + '</div></div></div>' +
+    return '<div class="player-row"><div class="queue-num">' + initials + '</div>' +
+      '<div class="row-name">' + m.name + '<div class="row-sub">' + (m.phone || 'No phone') + '</div></div>' +
       '<button class="action-btn" onclick="deleteMember(\'' + m._id + '\')">Delete</button></div>';
   }).join('');
 }
