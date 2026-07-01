@@ -48,6 +48,7 @@
   .session-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .session-title { font-size: 14px; font-weight: 500; }
   .close-btn { background: var(--surface-alt); border: 0.5px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 500; padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+  .delete-btn { background: rgba(200,32,46,0.2); border: 0.5px solid var(--primary); color: var(--primary); font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
   .link-box { background: var(--surface-alt); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
   .link-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.5px; }
   .link-row { display: flex; align-items: center; gap: 8px; }
@@ -64,6 +65,7 @@
   .pay-toggle { border: none; padding: 7px 13px; border-radius: 20px; font-weight: 600; font-size: 11px; cursor: pointer; color: white; min-width: 64px; }
   .pay-toggle.paid { background: var(--paid); }
   .pay-toggle.unpaid { background: var(--unpaid); }
+  .action-btn { background: rgba(200,32,46,0.2); border: 0.5px solid var(--primary); color: var(--primary); font-size: 11px; font-weight: 600; padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
   .approve-btn { background: var(--primary); border: none; color: white; font-size: 11px; padding: 7px 11px; border-radius: 6px; cursor: pointer; }
   .decline-btn { background: none; border: 0.5px solid var(--border); color: var(--muted); font-size: 11px; padding: 7px 11px; border-radius: 6px; cursor: pointer; }
   .empty-state { text-align: center; color: var(--muted); padding: 36px 16px; font-size: 13px; }

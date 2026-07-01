@@ -56,9 +56,13 @@ async function loadHistory() {
   list.innerHTML = sessions.map(function(s) {
     const date = new Date(s.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     const paidCount = s.queue.filter(function(p){ return p.paid; }).length;
+    const deleteBtn = s.status === 'closed' ? '<button class="delete-btn" onclick="deleteSession(\'' + s._id + '\')">Delete</button>' : '';
     return '<div class="session-card" onclick="openSession(\'' + s._id + '\')">' +
       '<div><div class="date">' + date + '</div><div class="meta">' + s.queue.length + ' players &middot; ' + paidCount + ' paid</div></div>' +
-      '<span class="pill ' + s.status + '">' + s.status + '</span></div>';
+      '<div style="display: flex; gap: 8px; align-items: center;">' +
+      '<span class="pill ' + s.status + '">' + s.status + '</span>' +
+      deleteBtn +
+      '</div></div>';
   }).join('');
 }
 
@@ -124,7 +128,8 @@ function renderSession(sessionData) {
     playersList.innerHTML = sessionData.queue.map(function(p) {
       return '<div class="player-row"><div class="queue-num">' + p.queueNumber + '</div>' +
         '<div class="row-name">' + p.name + '</div>' +
-        '<button class="pay-toggle ' + (p.paid ? 'paid' : 'unpaid') + '" onclick="togglePaid(\'' + p._id + '\')">' + (p.paid ? 'Paid' : 'Unpaid') + '</button></div>';
+        '<button class="pay-toggle ' + (p.paid ? 'paid' : 'unpaid') + '" onclick="togglePaid(\'' + p._id + '\')">' + (p.paid ? 'Paid' : 'Unpaid') + '</button>' +
+        '<button class="action-btn" onclick="deletePlayer(\'' + p._id + '\')">Delete</button></div>';
     }).join('');
   }
 }
@@ -151,10 +156,15 @@ async function addWalkin() {
   const input = document.getElementById('walkin-name');
   const name = input.value.trim();
   if (!name) return;
-  await fetch(API + '/sessions/' + currentSessionId + '/walkin', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name }) });
-  input.value = '';
-  document.getElementById('walkin-row').style.display = 'none';
-  refreshCurrentSession();
+  try {
+    const res = await fetch(API + '/sessions/' + currentSessionId + '/walkin', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name }) });
+    if (res.ok) {
+      input.value = '';
+      await refreshCurrentSession();
+    }
+  } catch (err) {
+    console.error('Error adding player:', err);
+  }
 }
 
 async function togglePaid(playerId) {
@@ -162,10 +172,36 @@ async function togglePaid(playerId) {
   refreshCurrentSession();
 }
 
+async function deletePlayer(playerId) {
+  if (!confirm('Remove this player from the queue?')) return;
+  try {
+    const res = await fetch(API + '/sessions/' + currentSessionId + '/players/' + playerId, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) {
+      await refreshCurrentSession();
+    }
+  } catch (err) {
+    console.error('Error deleting player:', err);
+    alert('Failed to remove player');
+  }
+}
+
 async function closeSession() {
   if (!confirm('Close this session? No more players can be added.')) return;
   await fetch(API + '/sessions/' + currentSessionId + '/close', { method: 'PATCH', headers: authHeaders() });
   refreshCurrentSession();
+}
+
+async function deleteSession(sessionId) {
+  if (!confirm('Are you sure you want to delete this session? This cannot be undone.')) return;
+  try {
+    const res = await fetch(API + '/sessions/' + sessionId, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) {
+      loadHistory();
+    }
+  } catch (err) {
+    console.error('Error deleting session:', err);
+    alert('Failed to delete session');
+  }
 }
 
 async function loadMembers() {
@@ -187,10 +223,16 @@ async function addMember() {
   const name = document.getElementById('member-name').value.trim();
   const phone = document.getElementById('member-phone').value.trim();
   if (!name) return;
-  await fetch(API + '/members', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name, phone: phone }) });
-  document.getElementById('member-name').value = '';
-  document.getElementById('member-phone').value = '';
-  loadMembers();
+  try {
+    const res = await fetch(API + '/members', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name, phone: phone }) });
+    if (res.ok) {
+      document.getElementById('member-name').value = '';
+      document.getElementById('member-phone').value = '';
+      await loadMembers();
+    }
+  } catch (err) {
+    console.error('Error adding member:', err);
+  }
 }
 
 function logout() {

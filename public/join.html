@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Join Game - MAB Sports Ballclub</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <div id="join-screen" class="screen active">
+    <div class="badge">&#127936;</div>
+    <div class="login-title">MAB SPORTS</div>
+    <div class="login-sub">JOIN BALLCLUB SESSION</div>
+    <div id="status-message" style="text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 20px;"></div>
+    
+    <div id="join-form" style="display: none;">
+      <input type="text" id="join-name" placeholder="Full Name" required>
+      <input type="tel" id="join-phone" placeholder="Phone Number" required>
+      <button class="primary" onclick="submitJoin()">Request to Join</button>
+      <div class="error-msg" id="join-error"></div>
+    </div>
+
+    <div id="success-message" style="display: none; text-align: center;">
+      <div style="font-size: 48px; margin: 20px 0;">✓</div>
+      <div class="login-title">Request Sent!</div>
+      <div class="login-sub" style="margin-top: 10px;">Wait for the owner to approve your request. You'll be added to the queue.</div>
+      <button class="primary" onclick="location.reload()" style="margin-top: 20px;">Done</button>
+    </div>
+
+    <div id="error-container" style="display: none; text-align: center;">
+      <div style="font-size: 48px; margin: 20px 0;">✗</div>
+      <div class="login-title">Session Unavailable</div>
+      <div class="login-sub" style="margin-top: 10px;" id="error-reason"></div>
+      <button class="primary" onclick="location.href = '/'" style="margin-top: 20px;">Go Home</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = '/api';
+
+// Extract share code from URL
+const params = new URLSearchParams(window.location.search);
+const shareCode = params.get('code');
+
+if (!shareCode) {
+  showError('Invalid link. No session code provided.');
+} else {
+  checkSession();
+}
+
+async function checkSession() {
+  try {
+    const res = await fetch(API + '/public/session/' + shareCode);
+    if (!res.ok) {
+      showError('This session link is expired or invalid.');
+      return;
+    }
+    const data = await res.json();
+    document.getElementById('status-message').textContent = 'Session Status: ' + data.status.toUpperCase();
+    
+    if (data.status === 'closed') {
+      showError('This session has been closed.');
+    } else {
+      showJoinForm();
+    }
+  } catch (err) {
+    console.error('Error checking session:', err);
+    showError('Unable to verify session. Please try again.');
+  }
+}
+
+function showJoinForm() {
+  document.getElementById('join-form').style.display = 'block';
+  document.getElementById('join-name').focus();
+}
+
+function showError(message) {
+  document.getElementById('error-container').style.display = 'block';
+  document.getElementById('error-reason').textContent = message;
+}
+
+async function submitJoin() {
+  const name = document.getElementById('join-name').value.trim();
+  const phone = document.getElementById('join-phone').value.trim();
+
+  if (!name || !phone) {
+    showJoinError('Please fill in all fields.');
+    return;
+  }
+
+  if (phone.replace(/\D/g, '').length < 10) {
+    showJoinError('Please enter a valid phone number (at least 10 digits).');
+    return;
+  }
+
+  try {
+    const res = await fetch(API + '/public/session/' + shareCode + '/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, phone: phone })
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      showJoinError(error.error || 'Failed to submit request. Please try again.');
+      return;
+    }
+
+    document.getElementById('join-form').style.display = 'none';
+    document.getElementById('success-message').style.display = 'block';
+  } catch (err) {
+    console.error('Error submitting join request:', err);
+    showJoinError('Network error. Please check your connection and try again.');
+  }
+}
+
+function showJoinError(message) {
+  const errorDiv = document.getElementById('join-error');
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+}
+</script>
+</body>
+</html>
