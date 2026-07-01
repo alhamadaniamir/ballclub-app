@@ -187,6 +187,11 @@ function switchTab(name) {
     document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
     document.getElementById('nav-' + t).classList.toggle('active', t === name);
   });
+  // Show empty state by default when switching to session tab to prevent flashing
+  if (name === 'session') {
+    document.getElementById('session-empty').style.display = 'block';
+    document.getElementById('session-active').style.display = 'none';
+  }
   if (name === 'history') loadHistory();
   if (name === 'session') loadSessionTab();
   if (name === 'members') loadMembers();
