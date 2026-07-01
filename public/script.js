@@ -187,8 +187,19 @@ async function deletePlayer(playerId) {
 
 async function closeSession() {
   if (!confirm('Close this session? No more players can be added.')) return;
-  await fetch(API + '/sessions/' + currentSessionId + '/close', { method: 'PATCH', headers: authHeaders() });
-  refreshCurrentSession();
+  try {
+    const res = await fetch(API + '/sessions/' + currentSessionId + '/close', { method: 'PATCH', headers: authHeaders() });
+    if (res.ok) {
+      currentSessionId = null;
+      document.getElementById('session-empty').style.display = 'block';
+      document.getElementById('session-active').style.display = 'none';
+      await loadHistory();
+      switchTab('history');
+    }
+  } catch (err) {
+    console.error('Error closing session:', err);
+    alert('Failed to close session');
+  }
 }
 
 async function deleteSession(sessionId) {
