@@ -226,7 +226,8 @@ async function loadMembers() {
   list.innerHTML = members.map(function(m) {
     const initials = m.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
     return '<div class="player-row"><div class="queue-num">' + initials + '</div>' +
-      '<div><div class="row-name">' + m.name + '</div><div class="row-sub">' + (m.phone || 'No phone') + '</div></div></div>';
+      '<div><div class="row-name">' + m.name + '</div><div class="row-sub">' + (m.phone || 'No phone') + '</div></div>' +
+      '<button class="action-btn" onclick="deleteMember(\'' + m._id + '\')">Delete</button></div>';
   }).join('');
 }
 
@@ -243,6 +244,19 @@ async function addMember() {
     }
   } catch (err) {
     console.error('Error adding member:', err);
+  }
+}
+
+async function deleteMember(memberId) {
+  if (!confirm('Delete this member from the directory?')) return;
+  try {
+    const res = await fetch(API + '/members/' + memberId, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) {
+      await loadMembers();
+    }
+  } catch (err) {
+    console.error('Error deleting member:', err);
+    alert('Failed to delete member');
   }
 }
 
