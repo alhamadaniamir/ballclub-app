@@ -32,23 +32,28 @@
     <main>
 
       <div id="history-tab">
-        <button class="start-btn" onclick="startSession()">Start New Session</button>
         <div id="sessions-list"></div>
       </div>
 
       <div id="session-tab" style="display:none;">
-        <div class="session-top">
-          <span class="session-title" id="session-title"></span>
-          <button class="close-btn" onclick="switchTab('history')">← Back</button>
+        <button class="start-btn" onclick="startSession()">Start New Session</button>
+        <div id="session-empty" style="display:block;">
+          <div class="empty-state">No active session. Click "Start New Session" to begin.</div>
         </div>
-        <div class="link-box">
-          <div class="link-label">SHARE LINK FOR JOINERS</div>
-          <div class="link-row">
-            <span class="link-text" id="share-link"></span>
-            <button class="copy-btn" onclick="copyLink()">Copy</button>
+        <div id="session-active" style="display:none;">
+          <div class="session-top">
+            <span class="session-title" id="session-title"></span>
+            <button class="close-btn" onclick="switchTab('history')">← Back</button>
           </div>
+          <div class="link-box">
+            <div class="link-label">SHARE LINK FOR JOINERS</div>
+            <div class="link-row">
+              <span class="link-text" id="share-link"></span>
+              <button class="copy-btn" onclick="copyLink()">Copy</button>
+            </div>
+          </div>
+          <div id="session-detail"></div>
         </div>
-        <div id="session-detail"></div>
       </div>
 
       <div id="members-tab" style="display:none;">

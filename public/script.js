@@ -31,7 +31,7 @@ function showApp() {
 
 function switchTab(name) {
   ['history','session','members'].forEach(function(t) {
-    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    document.getElementById(t + '-tab').style.display = t === name ? 'block' : 'none';
     document.getElementById('nav-' + t).classList.toggle('active', t === name);
   });
   // Show empty state by default when switching to session tab to prevent flashing
@@ -184,12 +184,12 @@ async function loadMembers() {
 }
 
 async function addMember() {
-  const name = document.getElementById('mem-name').value.trim();
-  const phone = document.getElementById('mem-phone').value.trim();
+  const name = document.getElementById('member-name').value.trim();
+  const phone = document.getElementById('member-phone').value.trim();
   if (!name) return;
   await fetch(API + '/members', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name, phone: phone }) });
-  document.getElementById('mem-name').value = '';
-  document.getElementById('mem-phone').value = '';
+  document.getElementById('member-name').value = '';
+  document.getElementById('member-phone').value = '';
   loadMembers();
 }
 
