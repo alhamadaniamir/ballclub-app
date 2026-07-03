@@ -9,7 +9,7 @@ from app.models.session import Session
 
 
 async def init_db() -> None:
-    client = AsyncIOMotorClient(settings.MONGO_URI)
+    client = AsyncIOMotorClient(settings.MONGO_URI, tz_aware=True)
     await init_beanie(
         database=client[settings.MONGO_DB_NAME],
         document_models=[Member, Session, Owner, Activity],

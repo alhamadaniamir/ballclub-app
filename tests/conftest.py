@@ -11,7 +11,7 @@ OWNER_PASSWORD = "test-password-123"
 
 @pytest.fixture(autouse=True)
 def _mock_mongo(monkeypatch):
-    monkeypatch.setattr(db_module, "AsyncIOMotorClient", lambda uri: AsyncMongoMockClient())
+    monkeypatch.setattr(db_module, "AsyncIOMotorClient", lambda uri, **kwargs: AsyncMongoMockClient())
 
 
 @pytest.fixture(autouse=True)
