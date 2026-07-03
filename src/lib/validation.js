@@ -17,7 +17,12 @@ export const phoneSchema = z
 
 export const optionalPhoneSchema = z.union([z.literal(''), phoneSchema])
 
-export const usernameSchema = z.string().trim().min(3, 'Username must be at least 3 characters.')
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, 'Username must be at least 3 characters.')
+  .max(30, 'Username must be 30 characters or fewer.')
+  .regex(/^[a-zA-Z0-9._-]+$/, 'Username can only use letters, numbers, dots, underscores, or hyphens.')
 export const passwordSchema = z.string().min(8, 'Password must be at least 8 characters.')
 
 export const fullNameSchema = z.object({

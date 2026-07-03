@@ -90,6 +90,11 @@ export function updateProfile(username, firstName, lastName) {
   })
 }
 
+export function suggestUsername(firstName, lastName) {
+  const q = new URLSearchParams({ first_name: firstName || '', last_name: lastName || '' })
+  return request(`/auth/me/username-suggestion?${q.toString()}`, { auth: true })
+}
+
 export function listSessions(params = {}) {
   const { status, dateFrom, dateTo, page, pageSize } = typeof params === 'string' ? { status: params } : params
   const search = new URLSearchParams()

@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { PhUserCircle, PhLockKey, PhPencilSimple, PhSignOut, PhSparkle } from '@phosphor-icons/vue'
-import { getMe, changePassword, updateProfile } from '@/lib/api'
+import { getMe, changePassword, updateProfile, suggestUsername } from '@/lib/api'
 import { changePasswordSchema, profileSchema, firstIssueMessage } from '@/lib/validation'
 import { useAuth } from '@/composables/useAuth'
 import { useConfirm } from '@/composables/useConfirm'
@@ -41,6 +41,7 @@ const newPassword = ref('')
 const error = ref('')
 const success = ref('')
 const saving = ref(false)
+const generating = ref(false)
 
 function syncEditFields() {
   editUsername.value = me.value.username
@@ -72,16 +73,21 @@ function cancelEditing() {
   isEditing.value = false
 }
 
-function generateUsername() {
-  const first = editFirstName.value.trim().split(/\s+/)[0] || ''
-  const last = editLastName.value.trim().replace(/\s+/g, '')
-  const base = `${first}${last}`.toLowerCase().replace(/[^a-z0-9]/g, '')
-  if (base.length < 3) {
-    error.value = 'Add a first and last name first to generate a username.'
+async function generateUsername() {
+  if (!editFirstName.value.trim() && !editLastName.value.trim()) {
+    error.value = 'Add a first or last name first to generate a username.'
     return
   }
   error.value = ''
-  editUsername.value = base
+  generating.value = true
+  try {
+    const { username } = await suggestUsername(editFirstName.value, editLastName.value)
+    editUsername.value = username
+  } catch (err) {
+    error.value = err.message || 'Could not generate a username. Try again.'
+  } finally {
+    generating.value = false
+  }
 }
 
 async function handleSave() {
@@ -175,12 +181,13 @@ onMounted(load)
             <button
               v-if="isEditing"
               type="button"
-              class="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md bg-secondary px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              :disabled="generating"
+              class="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md bg-secondary px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-60"
               title="Generate a username from your first and last name"
               @click="generateUsername"
             >
               <PhSparkle :size="12" weight="bold" />
-              Generate
+              {{ generating ? '...' : 'Generate' }}
             </button>
           </div>
           <Label for="profile-first-name" class="sr-only">First Name</Label>
