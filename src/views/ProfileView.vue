@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { PhUserCircle, PhLockKey, PhPencilSimple, PhSignOut } from '@phosphor-icons/vue'
+import { PhUserCircle, PhLockKey, PhPencilSimple, PhSignOut, PhSparkle } from '@phosphor-icons/vue'
 import { getMe, changePassword, updateProfile } from '@/lib/api'
 import { changePasswordSchema, profileSchema, firstIssueMessage } from '@/lib/validation'
 import { useAuth } from '@/composables/useAuth'
@@ -70,6 +70,18 @@ function cancelEditing() {
   syncEditFields()
   error.value = ''
   isEditing.value = false
+}
+
+function generateUsername() {
+  const first = editFirstName.value.trim().split(/\s+/)[0] || ''
+  const last = editLastName.value.trim().replace(/\s+/g, '')
+  const base = `${first}${last}`.toLowerCase().replace(/[^a-z0-9]/g, '')
+  if (base.length < 3) {
+    error.value = 'Add a first and last name first to generate a username.'
+    return
+  }
+  error.value = ''
+  editUsername.value = base
 }
 
 async function handleSave() {
@@ -149,15 +161,28 @@ onMounted(load)
       <CardContent>
         <form class="flex flex-col gap-2" @submit.prevent="handleSave">
           <Label for="profile-username" class="sr-only">Username</Label>
-          <Input
-            id="profile-username"
-            v-model="editUsername"
-            type="text"
-            name="username"
-            autocomplete="username"
-            placeholder="Username"
-            :disabled="!isEditing"
-          />
+          <div class="relative">
+            <Input
+              id="profile-username"
+              v-model="editUsername"
+              type="text"
+              name="username"
+              autocomplete="username"
+              placeholder="Username"
+              :disabled="!isEditing"
+              :class="isEditing ? 'pr-28' : ''"
+            />
+            <button
+              v-if="isEditing"
+              type="button"
+              class="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md bg-secondary px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              title="Generate a username from your first and last name"
+              @click="generateUsername"
+            >
+              <PhSparkle :size="12" weight="bold" />
+              Generate
+            </button>
+          </div>
           <Label for="profile-first-name" class="sr-only">First Name</Label>
           <Input
             id="profile-first-name"
