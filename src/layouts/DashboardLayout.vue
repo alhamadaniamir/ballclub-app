@@ -1,6 +1,27 @@
 <script setup>
+import { onMounted } from 'vue'
 import TabNav from '@/components/layout/TabNav.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
+
+// Warm the route chunks in the background so tab-to-tab navigation is instant
+// (Vite dedupes these against the router's dynamic imports, so each loads once).
+onMounted(() => {
+  const prefetch = [
+    () => import('@/components/dashboard/DashboardOverview.vue'),
+    () => import('@/components/dashboard/HistoryTab.vue'),
+    () => import('@/components/dashboard/SessionTab.vue'),
+    () => import('@/components/dashboard/MembersTab.vue'),
+    () => import('@/components/dashboard/OwnersTab.vue'),
+    () => import('@/views/ProfileView.vue'),
+    () => import('@/views/MemberDetailView.vue'),
+  ]
+  const run = () => prefetch.forEach((load) => load())
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(run)
+  } else {
+    setTimeout(run, 200)
+  }
+})
 </script>
 
 <template>
